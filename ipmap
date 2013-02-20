@@ -3,24 +3,32 @@
 
 begin
   # make sure it errors sanely on no input
-  ipfile_name = ARGV[0] ? ARGV[0] : " "
-  config_name = ARGV[1] ? ARGV[1] : " "
+  ipfile_name  = ARGV[0] ? ARGV[0] : " "
+  config_name  = ARGV[1] ? ARGV[1] : " "
+  # create a unique outfile name if none is specified
+  outfile_name = ARGV[2] ? ARGV[2] : [Time.now.strftime("%H:%M:%S:%2N"), config_name].join("-")
 
   # exit cleanly if the files are not valid
   unless File.exist?(ipfile_name) && File.exist?(config_name)
-    STDERR.puts "usage: ipmap mapfile config"
+    STDERR.puts "usage: ipmap mapfile config [outfile]"
     exit 1 
   end
+  if ARGV[2]
+    unless File.directory?(File.dirname(outfile_name))
+      STDERR.puts "Directory specified for output file does not exist"
+      exit 1
+    end
+  end
 
+  # read ipmap array
   ipmap = Array.new
   ipfile = File.new(ipfile_name, 'r')
   while line = ipfile.gets
     ipmap.push line.split " "
   end
-  new_filename = [Time.now.strftime("%H:%M:%S:%2N"), config_name].join "-"
   
   config_file = File.new(config_name, 'r')
-  new_config_file = File.new(new_filename, 'w')
+  new_config_file = File.new(outfile_name, 'w')
   
   # remap the file
   while line = config_file.gets
